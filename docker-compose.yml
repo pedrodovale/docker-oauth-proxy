@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  proxy:
+    image: traefik:v2.10
+    container_name: oauth-proxy
+    ports:
+      - "8081:8081"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./proxy/traefik.yml:/etc/traefik/traefik.yml
+      - ./proxy/dynamic_conf:/opt/dynamic_conf
+    depends_on:
+      - as # to fetch JWK Set
+      - rs # to forward requests to
+
+  # admin console: http://localhost:8090/admin/master/console
+  # credentials: admin:admin
+  as:
+    image: quay.io/keycloak/keycloak:23.0.3
+    container_name: oauth-as
+    ports:
+      - "8090:8080"
+    environment:
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_URL: http://localhost:8090
+      KC_HEALTH_ENABLED: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      REALM_NAME: bookshelf
+      CLIENT_URL: http://localhost:8080
+      USER_NAME: sherlock
+      USER_PASSWORD: "holmes"
+      CLIENT_ID: client
+      CLIENT_SECRET: "3HY1NEnlgaibgxUFrAvyp8LhWK5eP9AN"
+    volumes:
+      - ./auth_server/realm.json:/opt/keycloak/data/import/realm.json
+    command: start-dev --import-realm
+
+  rs:
+    image: amazoncorretto:17.0.9-alpine3.17
+    container_name: oauth-rs
+    ports:
+      - "8781:8787"
+    volumes:
+      - ./resource_server/target/app.jar:/opt/app.jar
+    entrypoint: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787 -jar /opt/app.jar
+
+  # app: http://localhost:8080
+  # credentials: sherlock:holmes
+  client:
+    image: amazoncorretto:17.0.9-alpine3.17
+    container_name: oauth-client
+    ports:
+      - "8080:8080"
+      - "8780:8787"
+    environment:
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://as:8080/realms/bookshelf/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://as:8080/realms/bookshelf/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_USER_INFO_URI: http://as:8080/realms/bookshelf/protocol/openid-connect/userinfo
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: "3HY1NEnlgaibgxUFrAvyp8LhWK5eP9AN"
+      RESOURCE_SERVER_URL_BOOKS: http://proxy:8081/books
+    volumes:
+      - ./client/target/app.jar:/opt/app.jar
+    entrypoint: java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787 -jar /opt/app.jar
+    depends_on:
+      - as
+      - proxy

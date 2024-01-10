@@ -1,0 +1,14 @@
+experimental:
+  plugins:
+    jwt:
+      moduleName: github.com/Brainnwave/jwt-middleware
+      version: v1.1.7
+
+entryPoints:
+  rs:
+    address: :8081
+
+providers:
+  file:
+    directory: /opt/dynamic_conf
+    watch: true

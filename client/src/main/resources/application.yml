@@ -1,0 +1,24 @@
+spring:
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            authorization-uri: http://localhost:8090/realms/bookshelf/protocol/openid-connect/auth
+            token-uri: http://localhost:8090/realms/bookshelf/protocol/openid-connect/token
+            jwk-set-uri: http://localhost:8090/realms/bookshelf/protocol/openid-connect/certs
+            user-info-uri: http://localhost:8090/realms/bookshelf/protocol/openid-connect/userinfo
+            user-name-attribute: preferred_username
+        registration:
+          keycloak:
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_basic
+            client-id: client
+            client-secret: changeme
+            redirect-uri: http://localhost:8080/login/oauth2/code/keycloak
+            scope: openid
+resource-server:
+  url:
+    books: http://localhost:8081/books

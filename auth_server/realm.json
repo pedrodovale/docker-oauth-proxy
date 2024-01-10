@@ -1,0 +1,50 @@
+{
+  "enabled": true,
+  "id": "${REALM_NAME}",
+  "realm": "${REALM_NAME}",
+  "clients": [
+    {
+      "id": "${CLIENT_ID}",
+      "clientId": "${CLIENT_ID}",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${CLIENT_SECRET}",
+      "name": "${CLIENT_ID}",
+      "enabled": true,
+      "publicClient": false,
+      "redirectUris": [
+        "${CLIENT_URL}/*"
+      ],
+      "webOrigins": [
+        "${CLIENT_URL}"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "${USER_NAME}",
+      "email": "${USER_NAME}@mail.com",
+      "username": "${USER_NAME}",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "temporary": false,
+          "type": "password",
+          "value": "${USER_PASSWORD}"
+        }
+      ],
+      "realmRoles" : [ "READER" ]
+    }
+  ],
+  "roles" : {
+    "realm": [{
+      "id" : "3d0236a9-cf3d-46b8-bdec-a95a1cc28e80",
+      "name" : "READER",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "bookshelf",
+      "attributes" : { }
+    }]
+  }
+}

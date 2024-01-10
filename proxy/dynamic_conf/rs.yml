@@ -1,0 +1,21 @@
+http:
+  routers:
+    to-rs:
+      rule: HeadersRegexp(`Authorization`, `Bearer (.+)`)
+      middlewares:
+        - jwt-validation
+      service: rs
+  middlewares:
+    jwt-validation:
+      plugin:
+        jwt:
+          issuers:
+            - http://as:8080/realms/bookshelf
+          forwardToken: false
+          headerMap:
+            Shelf-User: preferred_username
+  services:
+    rs:
+      loadBalancer:
+        servers:
+          - url: http://rs:8080
