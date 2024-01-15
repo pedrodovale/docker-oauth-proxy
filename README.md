@@ -32,25 +32,15 @@ On the first try, starting up all the containers with `docker-compose up -d` wil
 
 it is not possible to leverage the docker-compose `depends_on` to have the `proxy` and `client` containers wait until the `as` container is healthy.
 
-# How to run (first try)
+# How to run
 
-## Build the client and resource server artifacts
+## (only first time) Build the client and resource server artifacts
 
 > mvn clean package -f ./client/pom.xml
 
 > mvn clean package -f ./resource_server/pom.xml
 
-## Start the as service
-
-> docker-compose up -d as
-
-wait for the authorization server to be deployed, you can check by doing:
-
-> curl http://localhost:8090/health/ready
-
-you should see `"status": "UP"` in the response body.
-
-## Start remaining containers
+## Start the services
 
 > docker-compose up -d
 
