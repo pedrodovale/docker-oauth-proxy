@@ -11,8 +11,10 @@ services:
       - ./proxy/traefik.yml:/etc/traefik/traefik.yml
       - ./proxy/dynamic_conf:/opt/dynamic_conf
     depends_on:
-      - as # to fetch JWK Set
-      - rs # to forward requests to
+      as:
+        condition: service_healthy # necessary to fetch JWK Set
+      rs:
+        condition: service_started
 
   # admin console: http://localhost:8090/admin/master/console
   # credentials: admin:admin
@@ -36,7 +38,13 @@ services:
       CLIENT_SECRET: "3HY1NEnlgaibgxUFrAvyp8LhWK5eP9AN"
     volumes:
       - ./auth_server/realm.json:/opt/keycloak/data/import/realm.json
-    command: start-dev --import-realm
+      - ./auth_server/healthcheck.sh:/otp/keycloak/healthcheck.sh
+    healthcheck:
+      test: sh /otp/keycloak/healthcheck.sh
+      start_period: 5s
+      interval: 3s
+      retries: 15 # start_period + retries * interval -> must be enough for the first deployment, where database migration is performed
+    command: start-dev --import-realm --log="console,file"
 
   rs:
     image: amazoncorretto:17.0.9-alpine3.17
